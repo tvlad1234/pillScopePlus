@@ -27,15 +27,52 @@ float adcToVoltage(uint16_t samp)
     return atten * 2 * (((3.3 * samp) / 4096.0) - 1.65);
 }
 
+// This function draws the graticule onto the screen
+void drawGraticule(uint16_t divx, uint16_t divy, uint16_t pix)
+{
+    uint16_t wit = divx * pix;
+    uint16_t hei = divy * pix;
+
+    for (int i = 0; i <= wit; i += pix)
+        dottedVLine(i, 0, hei);
+
+    for (int i = 0; i <= hei; i += pix)
+        dottedHLine(0, i, wit);
+}
+
+// This function draws a dotted horizontal line, used for drawing the graticule
+void dottedHLine(int x, int y, int l)
+{
+    for (int i = 0; i <= l; i++)
+    {
+        if (i % 2)
+            drawPixel(x + i, y, WHITE);
+        else
+            drawPixel(x + i, y, BLACK);
+    }
+}
+
+// This function draws a dotted vertical line, used for drawing the graticule
+void dottedVLine(int x, int y, int l)
+{
+    for (int i = 0; i <= l; i++)
+    {
+        if (i % 2)
+            drawPixel(x, y + i, WHITE);
+        else
+            drawPixel(x, y + i, BLACK);
+    }
+}
+
 // Draw the waveform on the screen
 void drawWave()
 {
-    drawGraticule(64, 96, 16, 4, 4); // Draw the graticule
+    drawGraticule(XDIV, YDIV, PIXDIV); // Draw the graticule
 
     maxVoltage = LOWER_VOLTAGE;
     minVoltage = UPPER_VOLTAGE;
 
-    for (int i = 0; i <= 94; i++)
+    for (int i = 0; i <= BUFFER_LEN / 2; i++)
     {
         // If we're looping through the buffer, let's compute the minimum and maximum voltage values while we're at it
         float voltage1 = adcToVoltage(adcBuf[i + trigPoint]);
@@ -46,7 +83,7 @@ void drawWave()
             minVoltage = voltage2;
 
         // Draw lines between sample points
-        drawLine(i, 31 - (voltage1 * 16 / vdiv), i + 1, 31 - (voltage2 * 16 / vdiv), WAVE_COLOR);
+        drawLine(i, (PIXDIV * YDIV / 2 - 1) - (voltage1 * PIXDIV / vdiv), i + 1, (PIXDIV * YDIV / 2 - 1) - (voltage2 * PIXDIV / vdiv), WAVE_COLOR);
     }
 }
 

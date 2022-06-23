@@ -3,11 +3,7 @@
 
 void splash();
 void ui();
-void sideMenu();
-void voltageInfo();
-void voltsMenu();
-void timeMenu();
-void usbMenu();
-void drawGraticule(int hei, int wit, int pix, int divx, int divy);
+void sideInfo();
+void settingsBar();
 
 #endif
