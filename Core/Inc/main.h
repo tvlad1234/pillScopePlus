@@ -60,20 +60,18 @@ void printFloat(float v, int decimalDigits, char s[]);
 /* Private defines -----------------------------------------------------------*/
 #define LED_Pin GPIO_PIN_13
 #define LED_GPIO_Port GPIOC
-#define BTN1_Pin GPIO_PIN_12
-#define BTN1_GPIO_Port GPIOB
-#define BTN2_Pin GPIO_PIN_13
-#define BTN2_GPIO_Port GPIOB
-#define BTN3_Pin GPIO_PIN_14
-#define BTN3_GPIO_Port GPIOB
-#define BTN4_Pin GPIO_PIN_15
-#define BTN4_GPIO_Port GPIOB
-#define ST7735_DC_Pin GPIO_PIN_4
-#define ST7735_DC_GPIO_Port GPIOB
-#define ST7735_RES_Pin GPIO_PIN_6
-#define ST7735_RES_GPIO_Port GPIOB
-#define ST7735_CS_Pin GPIO_PIN_7
+#define ST7735_CS_Pin GPIO_PIN_12
 #define ST7735_CS_GPIO_Port GPIOB
+#define ST7735_RES_Pin GPIO_PIN_13
+#define ST7735_RES_GPIO_Port GPIOB
+#define ST7735_DC_Pin GPIO_PIN_14
+#define ST7735_DC_GPIO_Port GPIOB
+#define BTN1_Pin GPIO_PIN_7
+#define BTN1_GPIO_Port GPIOB
+#define BTN2_Pin GPIO_PIN_8
+#define BTN2_GPIO_Port GPIOB
+#define BTN3_Pin GPIO_PIN_9
+#define BTN3_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

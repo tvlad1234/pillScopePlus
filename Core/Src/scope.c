@@ -31,7 +31,7 @@ float measuredFreq, sigPer;   // Time measurements
 void scopeInit()
 {
     ST7735_initR(INITR_BLACKTAB, &hspi1); // Initialize the LCD
-    setRotation(1);
+    setRotation(3);
     createFramebuf(); // Create the framebuffer for the LCD
     clearDisplay();
     splash(); // Splash screen

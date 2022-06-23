@@ -16,6 +16,7 @@ extern int atten;
 extern float vdiv;
 extern float trigVoltage;
 extern uint8_t trig;
+extern uint8_t trigged; 
 extern int trigPoint;
 
 extern float tdiv;
@@ -106,6 +107,14 @@ void sideInfo()
         setCursor(MENUPOS, 81);
         printString("Hz");
     }
+
+    setCursor(MENUPOS, 91);
+    if(trigged)
+    {
+        setTextColor(ST7735_GREEN, BLACK);
+        printString("Trig");
+    }
+
 }
 
 // This function adjusts the settings
@@ -116,19 +125,19 @@ void settingsBar()
 
     // Print top row
     setTextColor(WHITE, BLACK);
-    setCursor(0, 100);
+    setCursor(0, 105);
     printString("Vdiv");
 
-    setCursor(30, 100);
+    setCursor(30, 105);
     printString("Trig");
 
-    setCursor(60, 100);
+    setCursor(60, 105);
     printString("Slope");
 
-    setCursor(95, 100);
+    setCursor(95, 105);
     printString("Atten");
 
-    setCursor(130, 100);
+    setCursor(130, 105);
     if (tdiv < 1000)
         printString("us/d");
     else
@@ -138,7 +147,7 @@ void settingsBar()
     setTextColor(WHITE, BLACK);
     if (sel == 0)
         setTextColor(BLACK, WHITE);
-    setCursor(0, 110);
+    setCursor(0, 115);
     printFloat(vdiv, 1, st);
     printf("%sV\n", st);
 
@@ -148,12 +157,12 @@ void settingsBar()
         setTextColor(BLACK, WHITE);
         drawFastHLine(0, (uint16_t)((PIXDIV * YDIV / 2 - 1) - (trigVoltage * PIXDIV / vdiv)), XDIV * PIXDIV, ST7735_RED);
     }
-    setCursor(30, 110);
+    setCursor(30, 115);
     printFloat(trigVoltage, 1, st);
     printf("%s\n", st);
 
     setTextColor(WHITE, BLACK);
-    setCursor(60, 110);
+    setCursor(60, 115);
     if (sel == 2)
         setTextColor(BLACK, WHITE);
     if (trig == RISING)
@@ -162,7 +171,7 @@ void settingsBar()
         printf("Fall\n");
 
     setTextColor(WHITE, BLACK);
-    setCursor(95, 110);
+    setCursor(95, 115);
     if (sel == 3)
         setTextColor(BLACK, WHITE);
     printf("%dx\n", atten);
@@ -170,14 +179,14 @@ void settingsBar()
     setTextColor(WHITE, BLACK);
     if (sel == 4)
         setTextColor(BLACK, WHITE);
-    setCursor(130, 110);
+    setCursor(130, 115);
     if (tdiv < 1000)
         printf("%d\n", (int)tdiv);
     else
         printf("%d\n", (int)tdiv / 1000);
 
     // Handle buttons
-    if (!HAL_GPIO_ReadPin(BTN3_GPIO_Port, BTN3_Pin))
+    if (!HAL_GPIO_ReadPin(BTN1_GPIO_Port, BTN1_Pin))
     {
         if (sel == 0) // volts per div
         {
@@ -213,10 +222,10 @@ void settingsBar()
             sampPer = tdiv / (float)PIXDIV;
             setTimerFreq(sampRate);
         }
-        HAL_Delay(100);
+        HAL_Delay(150);
     }
 
-    if (!HAL_GPIO_ReadPin(BTN4_GPIO_Port, BTN4_Pin))
+    if (!HAL_GPIO_ReadPin(BTN3_GPIO_Port, BTN3_Pin))
     {
         if (sel == 0) // vdiv
         {
@@ -249,7 +258,7 @@ void settingsBar()
             sampPer = tdiv / (float)PIXDIV;
             setTimerFreq(sampRate);
         }
-        HAL_Delay(100);
+        HAL_Delay(150);
     }
 
     if (!HAL_GPIO_ReadPin(BTN2_GPIO_Port, BTN2_Pin))

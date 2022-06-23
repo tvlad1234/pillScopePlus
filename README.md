@@ -19,11 +19,11 @@ LM358 dual op-amp (rail-to-rail opamps should work better in this context, but t
 just a 1MOhm resistor, in series with the input
 
 ## Schematics
-The LCD screen is connected to SPI1 (PB3-SCK, PB5-MOSI, PB4-DC, PB6-RST, PB7-CS). The buttons are connected as follows:\
-PB12: Menu\
-PB13: Select\
-PB14: Down\
-PB15: Up
+The LCD screen is connected to SPI1 (PB3-SCK, PB5-MOSI, PB12-CS, PB13-RST, PB14-DC). The buttons are connected as follows:\
+PB9: Up\
+PB8: Select\
+PB7: Down
+
 
 The output of the analog frontend is connected to ADC1_IN0, which corresponds to PA0.
 
