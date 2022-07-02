@@ -12,7 +12,7 @@ extern TIM_HandleTypeDef htim3;
 uint16_t adcBuf[BUFFER_LEN];             // this is where we'll store data
 volatile uint8_t finishedConversion = 0; // this lets us know when we're done capturing data
 
-int atten = 1;  // Attenuation
+int atten = 10; // Attenuation
 float vdiv = 2; // Volts per division
 
 uint8_t trigged;       // whether or not we're triggered
@@ -27,6 +27,8 @@ float sampPer;     // Sample period in uS (how long it takes to measure one samp
 float maxVoltage, minVoltage; // Voltage measurements
 float measuredFreq, sigPer;   // Time measurements
 
+float offsetVoltage = 1.65; // Reference voltage for the analog frontend
+
 extern UART_HandleTypeDef huart1;
 uint8_t uartBuf[15];
 
@@ -39,37 +41,41 @@ void scopeInit()
     clearDisplay();
     splash(); // Splash screen
 
+    // Set the sampling rate
     sampRate = (16000 * 1000) / tdiv;
     sampPer = tdiv / 16.0;
     setTimerFreq(sampRate);
 
+    // Initialize the UART
     HAL_UART_Receive_IT(&huart1, uartBuf, 1);
+}
 
-    HAL_TIM_Base_Start(&htim3);                                // Start the timebase timer
-    HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adcBuf, BUFFER_LEN); // Start the ADC
+// This function acquires one buffer worth of data
+void sample()
+{
+    HAL_TIM_Base_Start(&htim3);
+    HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adcBuf, BUFFER_LEN);
+    while (!finishedConversion)
+        ;
+    HAL_TIM_Base_Stop(&htim3);
+    finishedConversion = 0;
 }
 
 // This runs in an infinite loop
 void scopeLoop()
 {
-    if (finishedConversion) // We finished aquiring one buffer
-    {
-        // HAL_ADC_Stop_DMA(&hadc1);
-        HAL_TIM_Base_Stop(&htim3);
-        // Find the trigger point
-        findTrigger();
-        if (trigged)
-            HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 0);
+    // Acquire one buffer
+    sample();
 
-        // Run the UI
-        ui();
+    // Find the trigger point
+    findTrigger();
+    if (trigged)
+        HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 0);
 
-        // Start again
-        HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);
-        finishedConversion = 0;
-        HAL_TIM_Base_Start(&htim3);
-        HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adcBuf, BUFFER_LEN);
-    }
+    // Run the UI
+    ui();
+
+    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);
 }
 
 // This sets the sampling rate

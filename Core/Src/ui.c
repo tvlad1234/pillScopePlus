@@ -29,6 +29,55 @@ extern float measuredFreq, sigPer;
 volatile uint8_t outputFlag = 0; // whether or not we should output data to the USB or UART port
 extern UART_HandleTypeDef huart1;
 
+uint8_t autocalFlag = 1;
+extern float offsetVoltage;
+
+// Vertical autocalibration
+void autoCal()
+{
+    clearDisplay();
+    setCursor(0, 0);
+    setTextColor(BLACK, WHITE);
+    printString("Autocalibration\n\n");
+    setTextColor(WHITE, BLACK);
+    printString("Couple input to ground\nThen press Select");
+    flushDisplay();
+    while (HAL_GPIO_ReadPin(BTN2_GPIO_Port, BTN2_Pin))
+        ;
+    HAL_Delay(150);
+
+    sample();
+
+    clearDisplay();
+    setCursor(0, 0);
+    setTextColor(BLACK, WHITE);
+    printString("Autocalibration\n\n");
+    setTextColor(WHITE, BLACK);
+
+    uint32_t adcAvg = 0;
+    for (int i = 0; i < BUFFER_LEN; i++)
+        adcAvg += adcBuf[i];
+    adcAvg /= BUFFER_LEN;
+
+    offsetVoltage = adcToVoltage(adcAvg);
+
+    char st[15];
+    printFloat(offsetVoltage, 2, st);
+    printf("Offset voltage: %sV\n", st);
+
+    printFloat(frontendVoltage(0), 2, st);
+    printf("Min input voltage: %sV\n", st);
+
+    printFloat(frontendVoltage(4096), 2, st);
+    printf("Max input voltage: %sV\n", st);
+
+    flushDisplay();
+
+    while (HAL_GPIO_ReadPin(BTN2_GPIO_Port, BTN2_Pin))
+        ;
+    HAL_Delay(150);
+}
+
 // A little startup splash screen
 void splash()
 {
@@ -42,6 +91,16 @@ void splash()
 void ui()
 {
     clearDisplay();
+
+    if (!HAL_GPIO_ReadPin(BTN1_GPIO_Port, BTN1_Pin) && !HAL_GPIO_ReadPin(BTN3_GPIO_Port, BTN3_Pin))
+        autocalFlag = 1;
+
+    if (autocalFlag) // Check if we need to calibrate
+    {
+        autoCal();
+        autocalFlag = 0;
+    }
+
     drawWave(); // Draw the wave
     sideInfo(); // Print info on the side
     settingsBar();
@@ -194,8 +253,7 @@ void settingsBar()
         }
         else if (sel == 1) // trigger level
         {
-            if (trigVoltage > -4)
-                trigVoltage -= 0.1;
+            trigVoltage -= 0.1;
         }
         else if (sel == 2) // trigger slope
         {
@@ -228,13 +286,12 @@ void settingsBar()
     {
         if (sel == 0) // vdiv
         {
-            if (vdiv < 2.5)
+            if (vdiv < 9)
                 vdiv += 0.5;
         }
         else if (sel == 1) // trigLevel
         {
-            if (trigVoltage < 4)
-                trigVoltage += 0.1;
+            trigVoltage += 0.1;
         }
         else if (sel == 2) // trigType
         {
@@ -339,7 +396,7 @@ void outputCSV(uint8_t o)
 
     for (int i = 0; i < BUFFER_LEN; i++)
     {
-        float voltage = adcToVoltage(adcBuf[i]);
+        float voltage = atten * frontendVoltage(adcBuf[i]);
         printFloat(voltage, 1, st);
         printFloat((float)i * sampPer, 3, s1);
         sprintf(buffer, "%sE-06,%s\n\r", s1, st);
