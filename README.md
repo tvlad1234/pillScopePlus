@@ -5,7 +5,7 @@ Oscilloscope based around the STM32F401 Black Pill and a color LCD screen
 Approximatively 1MOhm input impedance\
 Timebase goes down to 20uS/div\
 On screen measurements: min/max voltage, peak-to-peak voltage, frequency\
-Captured waveforms can be sent over USB in TekScope-compatible CSV format.
+Captured waveforms can be sent over USB or UART in TekScope-compatible CSV format.
 ## Required parts
 ### Base parts:
 STM32F401CC Black Pill development board\

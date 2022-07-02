@@ -27,11 +27,14 @@ float sampPer;     // Sample period in uS (how long it takes to measure one samp
 float maxVoltage, minVoltage; // Voltage measurements
 float measuredFreq, sigPer;   // Time measurements
 
+extern UART_HandleTypeDef huart1;
+uint8_t uartBuf[15];
+
 // Initialize the scope
 void scopeInit()
 {
     ST7735_initR(INITR_BLACKTAB, &hspi1); // Initialize the LCD
-    setRotation(3);
+    setRotation(1);
     createFramebuf(); // Create the framebuffer for the LCD
     clearDisplay();
     splash(); // Splash screen
@@ -39,6 +42,8 @@ void scopeInit()
     sampRate = (16000 * 1000) / tdiv;
     sampPer = tdiv / 16.0;
     setTimerFreq(sampRate);
+
+    HAL_UART_Receive_IT(&huart1, uartBuf, 1);
 
     HAL_TIM_Base_Start(&htim3);                                // Start the timebase timer
     HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adcBuf, BUFFER_LEN); // Start the ADC
@@ -78,4 +83,13 @@ void setTimerFreq(uint32_t freq)
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 {
     finishedConversion = 1;
+}
+
+// This runs after receiving a character over the UART
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    extern uint8_t outputFlag;
+    if (uartBuf[0] == 's' || uartBuf[0] == 'S')
+        outputFlag = 2;
+    HAL_UART_Receive_IT(&huart1, uartBuf, 1);
 }
