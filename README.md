@@ -33,7 +33,7 @@ The schematic of the analog frontend can be found in the frontend.pdf file.
 
 ## Using the oscilloscope
 ### The UI
-The Select button cycles through the different parameters, which can be adjusted using the Up and Down buttons.
+The Select button cycles through the different parameters, which can be adjusted using the Up and Down buttons. Pressing Up and Down at the same time triggers the auto-calibration function.
 
 ### Measuring things
 The frontend of the instrument makes use of a virtual ground point which is 1.65V above the real ground. Because of this, the oscilloscope and the device under test must not be sharing the same ground reference. If you need to send data to the computer while measuring a device which shares ground with the scope, you should connect the computer via the UART port, with an opto-isolated adapter, while powering the oscilloscope from an external source.

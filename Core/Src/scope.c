@@ -27,7 +27,7 @@ float sampPer;     // Sample period in uS (how long it takes to measure one samp
 float maxVoltage, minVoltage; // Voltage measurements
 float measuredFreq, sigPer;   // Time measurements
 
-float offsetVoltage = 1.65; // Reference voltage for the analog frontend
+float offsetVoltage = 1.6540283; // Reference voltage for the analog frontend
 
 extern UART_HandleTypeDef huart1;
 uint8_t uartBuf[15];

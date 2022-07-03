@@ -32,8 +32,6 @@ extern UART_HandleTypeDef huart1;
 uint8_t autocalFlag = 0;
 extern float offsetVoltage;
 
-uint8_t topClip, bottomClip;
-
 // Vertical autocalibration
 void autoCal()
 {
@@ -179,7 +177,8 @@ void sideInfo()
 
 // This function adjusts the settings
 void settingsBar()
-{
+{   
+    extern uint8_t topClip, bottomClip;
     static uint8_t sel = 0;
     char st[10];
 

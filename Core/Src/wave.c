@@ -23,6 +23,8 @@ extern float measuredFreq, sigPer;
 
 extern float offsetVoltage;
 
+uint8_t topClip, bottomClip; // Whether or not we're clipping through the graticule
+
 // Convert ADC value to volts
 float frontendVoltage(uint16_t samp)
 {
@@ -90,7 +92,6 @@ void drawWave()
             minVoltage = voltage2;
 
         // Draw lines between sample points
-        extern uint8_t topClip, bottomClip;
         topClip = 0;
         bottomClip = 0;
         int16_t y1 = (PIXDIV * YDIV / 2 - 1) - (voltage1 * PIXDIV / vdiv);
