@@ -21,10 +21,19 @@ extern float sampPer;
 extern float maxVoltage, minVoltage;
 extern float measuredFreq, sigPer;
 
+extern float offsetVoltage;
+
+uint8_t topClip, bottomClip; // Whether or not we're clipping through the graticule
+
 // Convert ADC value to volts
+float frontendVoltage(uint16_t samp)
+{
+    return 2 * (((3.3 * samp) / 4096.0) - offsetVoltage);
+}
+
 float adcToVoltage(uint16_t samp)
 {
-    return atten * 2 * (((3.3 * samp) / 4096.0) - 1.65);
+    return (3.3 * samp) / 4096.0;
 }
 
 // This function draws the graticule onto the screen
@@ -75,23 +84,47 @@ void drawWave()
     for (int i = 0; i <= BUFFER_LEN / 2; i++)
     {
         // If we're looping through the buffer, let's compute the minimum and maximum voltage values while we're at it
-        float voltage1 = adcToVoltage(adcBuf[i + trigPoint]);
-        float voltage2 = adcToVoltage(adcBuf[i + trigPoint + 1]);
+        float voltage1 = atten * frontendVoltage(adcBuf[i + trigPoint]);
+        float voltage2 = atten * frontendVoltage(adcBuf[i + trigPoint + 1]);
         if (voltage2 > maxVoltage)
             maxVoltage = voltage2;
         if (voltage2 < minVoltage)
             minVoltage = voltage2;
 
         // Draw lines between sample points
-        drawLine(i, (PIXDIV * YDIV / 2 - 1) - (voltage1 * PIXDIV / vdiv), i + 1, (PIXDIV * YDIV / 2 - 1) - (voltage2 * PIXDIV / vdiv), WAVE_COLOR);
+        topClip = 0;
+        bottomClip = 0;
+        int16_t y1 = (PIXDIV * YDIV / 2 - 1) - (voltage1 * PIXDIV / vdiv);
+        int16_t y2 = (PIXDIV * YDIV / 2 - 1) - (voltage2 * PIXDIV / vdiv);
+        if (y1 > YDIV * PIXDIV)
+        {
+            y1 = YDIV * PIXDIV;
+            bottomClip = 1;
+        }
+        if (y2 > YDIV * PIXDIV)
+        {
+            y2 = YDIV * PIXDIV;
+            bottomClip = 1;
+        }
+        if (y1 < 0)
+        {
+            y1 = 0;
+            topClip = 1;
+        }
+        if (y2 < 0)
+        {
+            y2 = 0;
+            topClip = 1;
+        }
+        drawLine(i, y1, i + 1, y2, WAVE_COLOR);
     }
 }
 
 // This function finds the trigger point and also computes the frequency of thge signal
 void findTrigger()
 {
-    int trigLevel = (4096.0 * (trigVoltage / (2.0 * atten) + 1.65)) / 3.3; // ADC level at which we should trigger
-    int trigPoint2;                                                        // another trigger point, this will help us determine the period of the signal
+    int trigLevel = (4096.0 * (trigVoltage / (2.0 * atten) + offsetVoltage)) / 3.3; // ADC level at which we should trigger
+    int trigPoint2;                                                                 // another trigger point, this will help us determine the period of the signal
 
     trigPoint = 0;
     trigged = 0;

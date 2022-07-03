@@ -17,5 +17,6 @@
 
 void scopeInit();
 void scopeLoop();
+void sample();
 
 #endif
