@@ -29,8 +29,10 @@ extern float measuredFreq, sigPer;
 volatile uint8_t outputFlag = 0; // whether or not we should output data to the USB or UART port
 extern UART_HandleTypeDef huart1;
 
-uint8_t autocalFlag = 1;
+uint8_t autocalFlag = 0;
 extern float offsetVoltage;
+
+uint8_t topClip, bottomClip;
 
 // Vertical autocalibration
 void autoCal()
@@ -182,10 +184,14 @@ void settingsBar()
     char st[10];
 
     // Print top row
-    setTextColor(WHITE, BLACK);
+    if (topClip || bottomClip)
+        setTextColor(ST7735_RED, BLACK);
+    else
+        setTextColor(WHITE, BLACK);
     setCursor(0, 105);
     printString("Vdiv");
 
+    setTextColor(WHITE, BLACK);
     setCursor(30, 105);
     printString("Trig");
 
@@ -202,9 +208,17 @@ void settingsBar()
         printString("ms/d");
 
     // Print bottom row
-    setTextColor(WHITE, BLACK);
     if (sel == 0)
-        setTextColor(BLACK, WHITE);
+    {
+        if (topClip || bottomClip)
+            setTextColor(ST7735_RED, WHITE);
+        else
+            setTextColor(BLACK, WHITE);
+    }
+    else if (topClip || bottomClip)
+        setTextColor(ST7735_RED, BLACK);
+    else
+        setTextColor(WHITE, BLACK);
     setCursor(0, 115);
     printFloat(vdiv, 1, st);
     printf("%sV\n", st);

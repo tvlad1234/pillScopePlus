@@ -90,7 +90,32 @@ void drawWave()
             minVoltage = voltage2;
 
         // Draw lines between sample points
-        drawLine(i, (PIXDIV * YDIV / 2 - 1) - (voltage1 * PIXDIV / vdiv), i + 1, (PIXDIV * YDIV / 2 - 1) - (voltage2 * PIXDIV / vdiv), WAVE_COLOR);
+        extern uint8_t topClip, bottomClip;
+        topClip = 0;
+        bottomClip = 0;
+        int16_t y1 = (PIXDIV * YDIV / 2 - 1) - (voltage1 * PIXDIV / vdiv);
+        int16_t y2 = (PIXDIV * YDIV / 2 - 1) - (voltage2 * PIXDIV / vdiv);
+        if (y1 > YDIV * PIXDIV)
+        {
+            y1 = YDIV * PIXDIV;
+            bottomClip = 1;
+        }
+        if (y2 > YDIV * PIXDIV)
+        {
+            y2 = YDIV * PIXDIV;
+            bottomClip = 1;
+        }
+        if (y1 < 0)
+        {
+            y1 = 0;
+            topClip = 1;
+        }
+        if (y2 < 0)
+        {
+            y2 = 0;
+            topClip = 1;
+        }
+        drawLine(i, y1, i + 1, y2, WAVE_COLOR);
     }
 }
 
