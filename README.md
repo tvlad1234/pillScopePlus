@@ -10,11 +10,11 @@ Oscilloscope based around the STM32F401 Black Pill and a color LCD screen
   * min/max voltage
   * peak-to-peak voltage
   * frequency
-  * Captured waveforms can be sent over USB or UART in TekScope-compatible CSV format.
+* Captured waveforms can be sent over USB or UART in TekScope-compatible CSV format.
 ## Required parts
 ### Base parts:
 * STM32F401CC Black Pill development board
-* 128x160 ST7735-based OLED display
+* 128x160 ST7735-based TFT display
 * 3 pushbuttons
 * LM358 dual op-amp (rail-to-rail opamps should work better in this context, but this is what I had on hand)
 * 2x 68kOhm resistors (to create a 1.65V offset voltage)
