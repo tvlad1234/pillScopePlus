@@ -95,7 +95,9 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     extern uint8_t outputFlag;
-    if (uartBuf[0] == 's' || uartBuf[0] == 'S')
+    if (uartBuf[0] == 's')
         outputFlag = 2;
+    else if (uartBuf[0] == 'S')
+        outputFlag = 4;
     HAL_UART_Receive_IT(&huart1, uartBuf, 1);
 }

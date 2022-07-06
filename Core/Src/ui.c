@@ -105,10 +105,18 @@ void ui()
     sideInfo(); // Print info on the side
     settingsBar();
 
-    if (outputFlag) // If the computer requested data, we send it. This flag is modified in the USB receive handler in usbd_cdc_if.c
+    if (outputFlag)
     {
-        outputCSV(outputFlag);
-        outputFlag = 0;
+        if (outputFlag < 3) // If the computer requested data, we send it. This flag is modified in the USB receive handler in usbd_cdc_if.c and in the UART receive handler in scope.c
+        {
+            outputCSV(outputFlag);
+            outputFlag = 0;
+        }
+        else
+        {
+            outputTek(outputFlag - 2);
+            outputFlag = 0;
+        }
     }
 
     flushDisplay();
@@ -177,7 +185,7 @@ void sideInfo()
 
 // This function adjusts the settings
 void settingsBar()
-{   
+{
     extern uint8_t topClip, bottomClip;
     static uint8_t sel = 0;
     char st[10];
@@ -415,4 +423,60 @@ void outputCSV(uint8_t o)
         sprintf(buffer, "%sE-06,%s\n\r", s1, st);
         outputSerial(buffer, o);
     }
+}
+
+// This function dumps the captured waveform as raw data, for the TekScope data ingestion app
+void outputTek(uint8_t o)
+{
+    char st[10];
+    uint8_t buffer[30] = "";
+
+    setCursor(2, 5);
+    setTextColor(BLACK, WHITE);
+    printString("Sending data");
+    if (o == 1)
+        printString(" via USB");
+    else
+        printString(" via UART");
+    flushDisplay();
+
+    // transmission begin marker
+    sprintf(buffer, "BeginWave!\n\r");
+    outputSerial(buffer, o);
+
+    // sample period
+    printFloat(sampPer, 2, st);
+    sprintf(buffer, "%s\n\r", st);
+    outputSerial(buffer, o);
+
+    // number of samples
+    sprintf(buffer, "%d\n\r", BUFFER_LEN);
+    outputSerial(buffer, o);
+
+    // trigger point in buffer
+    sprintf(buffer, "%d\n\r", trigPoint);
+    outputSerial(buffer, o);
+
+    // frontend offset voltage
+    printFloat(offsetVoltage, 4, st);
+    sprintf(buffer, "%s\n\r", st);
+    outputSerial(buffer, o);
+
+    // attenuation factor of the probe
+    sprintf(buffer, "%d\n\r", atten);
+    outputSerial(buffer, o);
+    HAL_Delay(1);
+
+    // ADC samples
+    for (int i = 0; i < BUFFER_LEN; i++)
+    {
+        sprintf(buffer, "%d\n\r", adcBuf[i]);
+        outputSerial(buffer, o);
+    }
+
+    // transmission end marker
+    sprintf(buffer, "SendWaveComplete!\n\r");
+    outputSerial(buffer, o);
+    sprintf(buffer, "\n\r");
+    outputSerial(buffer, o);
 }
