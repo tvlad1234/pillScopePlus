@@ -50,8 +50,11 @@ The captured waveforms can be sent to a computer over USB or UART.
 #### CSV Output
 Sending `s` (lowercase s) over USB or UART tells the instrument to output the captured waveform in CSV format, which is compatible with the Tektronix TekScope app.
 
+![putty](https://user-images.githubusercontent.com/60291077/177576118-8649bee9-bdd7-459b-9a0d-911d3b135e4e.png)
+
 #### Direct TekScope output 
-Sending `S` (capital S) tells the scope to output raw data, which can be read by a companion app. This app automatically sends the data to TekScope, which allows almost real-time waveform analysis on the computer.
+Sending `S` (capital S) tells the scope to output raw data, which can be read by a [companion app](https://github.com/tvlad1234/tekscopeIngest). This app automatically streams the captured data to TekScope, which allows almost real-time waveform analysis on the computer.
+![companion](https://user-images.githubusercontent.com/60291077/177576844-adfbda6b-5129-4aee-bc59-4e8e6be63796.png)
 
 ## Code
 The code can be compiled with `make`. The actual oscilloscope code of this project is located in `Core\Src`, the [scope.c](Core/Src/scope.c), [ui.c](Core/Src/ui.c) and [wave.c](Core/Src/wave.c) files. Feel free to take a look, as they're commented for ease of understanding.
