@@ -32,6 +32,8 @@ extern UART_HandleTypeDef huart1;
 uint8_t autocalFlag = 0;
 extern float offsetVoltage;
 
+uint8_t fast = 1;
+
 // Vertical autocalibration
 void autoCal()
 {
@@ -450,11 +452,17 @@ void outputTek(uint8_t o)
     outputSerial(buffer, o);
 
     // number of samples
-    sprintf(buffer, "%d\n\r", BUFFER_LEN);
+    if (fast)
+        sprintf(buffer, "%d\n\r", BUFFER_LEN / 2);
+    else
+        sprintf(buffer, "%d\n\r", BUFFER_LEN);
     outputSerial(buffer, o);
 
     // trigger point in buffer
-    sprintf(buffer, "%d\n\r", trigPoint);
+    if (fast)
+        sprintf(buffer, "%d\n\r", 0);
+    else
+        sprintf(buffer, "%d\n\r", trigPoint);
     outputSerial(buffer, o);
 
     // frontend offset voltage
@@ -468,12 +476,18 @@ void outputTek(uint8_t o)
     HAL_Delay(1);
 
     // ADC samples
-    for (int i = 0; i < BUFFER_LEN; i++)
-    {
-        sprintf(buffer, "%d\n\r", adcBuf[i]);
-        outputSerial(buffer, o);
-    }
-
+    if (fast)
+        for (int i = 0; i < BUFFER_LEN / 2; i++)
+        {
+            sprintf(buffer, "%d\n\r", adcBuf[i + trigPoint]);
+            outputSerial(buffer, o);
+        }
+    else
+        for (int i = 0; i < BUFFER_LEN; i++)
+        {
+            sprintf(buffer, "%d\n\r", adcBuf[i]);
+            outputSerial(buffer, o);
+        }
     // transmission end marker
     sprintf(buffer, "SendWaveComplete!\n\r");
     outputSerial(buffer, o);

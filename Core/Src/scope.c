@@ -94,10 +94,16 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 // This runs after receiving a character over the UART
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-    extern uint8_t outputFlag;
+    extern uint8_t outputFlag, fast;
     if (uartBuf[0] == 's')
         outputFlag = 2;
-    else if (uartBuf[0] == 'S')
+    else if (uartBuf[0] == 'S'){
         outputFlag = 4;
+        fast = 0;
+    }
+    else if (uartBuf[0] == 'F'){
+        outputFlag = 4;
+        fast = 1;
+    }
     HAL_UART_Receive_IT(&huart1, uartBuf, 1);
 }
