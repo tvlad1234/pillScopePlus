@@ -2,6 +2,9 @@
 Oscilloscope based around the STM32F401 Black Pill and a color LCD screen, meant to be used as an educational tool
 ![The pillScope in its case](https://user-images.githubusercontent.com/60291077/177203708-384191ef-0c0f-4918-a163-46cf7b4721da.jpg)
 
+## Why does it exist?
+The goal of this project was to create a simple and easy to build but still very usable oscillsocope. I wanted to learn the basics of how a **digital storage oscilloscope** functions, while also ending up with something which can be used as an educational tool in the lab. A short description of how oscillscopes (and this one in particular) work can be found [here](HowItWorks.md).
+
 ## Features
 * -3.3V to 3.3V input range (can be increased if using attenuator probes)
 * 1MOhm input impedance
