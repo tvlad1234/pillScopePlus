@@ -25,12 +25,13 @@ extern float offsetVoltage;
 
 uint8_t topClip, bottomClip; // Whether or not we're clipping through the graticule
 
-// Convert ADC value to volts
+// Convert ADC sample to voltage at frontend input
 float frontendVoltage(uint16_t samp)
 {
     return 2 * (((3.3 * samp) / 4096.0) - offsetVoltage);
 }
 
+// Convert ADC sample to voltage at ADC input
 float adcToVoltage(uint16_t samp)
 {
     return (3.3 * samp) / 4096.0;
@@ -73,10 +74,9 @@ void dottedVLine(int x, int y, int l)
     }
 }
 
-// Draw the waveform on the screen
-void drawWave()
+// Draw the waveform trace on the screen
+void drawTrace(uint16_t buf[], uint16_t trigPoint, uint16_t col)
 {
-    drawGraticule(XDIV, YDIV, PIXDIV); // Draw the graticule
 
     maxVoltage = LOWER_VOLTAGE;
     minVoltage = UPPER_VOLTAGE;
@@ -84,8 +84,8 @@ void drawWave()
     for (int i = 0; i <= BUFFER_LEN / 2; i++)
     {
         // If we're looping through the buffer, let's compute the minimum and maximum voltage values while we're at it
-        float voltage1 = atten * frontendVoltage(adcBuf[i + trigPoint]);
-        float voltage2 = atten * frontendVoltage(adcBuf[i + trigPoint + 1]);
+        float voltage1 = atten * frontendVoltage(buf[i + trigPoint]);
+        float voltage2 = atten * frontendVoltage(buf[i + trigPoint + 1]);
         if (voltage2 > maxVoltage)
             maxVoltage = voltage2;
         if (voltage2 < minVoltage)
@@ -116,12 +116,19 @@ void drawWave()
             y2 = 0;
             topClip = 1;
         }
-        drawLine(i, y1, i + 1, y2, WAVE_COLOR);
+        drawLine(i, y1, i + 1, y2, col);
     }
 }
 
+// Draw the trace and graticule on the screen
+void traceScreen()
+{
+    drawGraticule(XDIV, YDIV, PIXDIV); // Draw the graticule
+    drawTrace(adcBuf, trigPoint, WAVE_COLOR);
+}
+
 // This function finds the trigger point and also computes the frequency of thge signal
-void findTrigger()
+void findTrigger(uint16_t adcBuf[])
 {
     int trigLevel = (4096.0 * (trigVoltage / (2.0 * atten) + offsetVoltage)) / 3.3; // ADC level at which we should trigger
     int trigPoint2;                                                                 // another trigger point, this will help us determine the period of the signal

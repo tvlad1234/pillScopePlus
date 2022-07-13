@@ -3,7 +3,7 @@
 
 float adcToVoltage(uint16_t samp);
 float frontendVoltage(uint16_t samp);
-void drawWave();
+void traceScreen();
 void findTrigger();
 
 #endif

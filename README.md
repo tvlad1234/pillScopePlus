@@ -1,16 +1,17 @@
 # pillScope Plus
-Oscilloscope based around the STM32F401 Black Pill and a color LCD screen
+Oscilloscope based around the STM32F401 Black Pill and a color LCD screen, meant to be used as an educational tool
 ![The pillScope in its case](https://user-images.githubusercontent.com/60291077/177203708-384191ef-0c0f-4918-a163-46cf7b4721da.jpg)
 
 ## Features
 * -3.3V to 3.3V input range (can be increased if using attenuator probes)
 * 1MOhm input impedance
-* 20uS/div minimum timebase
+* 10uS/div minimum timebase
+* 1.6 MSa/S sampling rate
 * On screen measurements:
   * min/max voltage
   * peak-to-peak voltage
   * frequency
-* Captured waveforms can be sent to a computer over USB or UART and analyzed in the Tektronix TekScope app
+* Captured waveforms can be sent to a computer over UART and analyzed in the Tektronix TekScope app
 ## Required parts
 ### Base parts:
 * STM32F401CC Black Pill development board
@@ -42,13 +43,13 @@ The Select button cycles through the different parameters, which can be adjusted
 Pressing Up and Down at the same time triggers the auto-calibration function. The tip and ground clip of the probed should be coupled together while calibrating. 
 
 ### Measuring things
-The frontend of the instrument makes use of a virtual ground point which is 1.65V above the real ground. Because of this, the oscilloscope and the device under test must not be sharing the same ground reference. If you need to send data to the computer while measuring a device which shares ground with the scope, you should connect the computer via the UART port, with an opto-isolated adapter, while powering the oscilloscope from an external source.
+The frontend of the instrument makes use of a virtual ground point which is 1.65V above the real ground. Because of this, the oscilloscope and the device under test must not be sharing the same ground reference. If you need to send data to the computer while measuring a device which shares ground with the scope, you should connect the computer via an opto-isolated adapter, while powering the oscilloscope from an external source.
 
 ### Saving captured wavevorms
-The captured waveforms can be sent to a computer over USB or UART.
+The captured waveforms can be sent to a computer over UART.
 
 #### CSV Output
-Sending `s` (lowercase s) over USB or UART tells the instrument to output the captured waveform in CSV format, which is compatible with the Tektronix TekScope app.
+Sending `s` (lowercase s) to the UART tells the instrument to output the captured waveform in CSV format, which is compatible with the Tektronix TekScope app.
 
 ![putty](https://user-images.githubusercontent.com/60291077/177576118-8649bee9-bdd7-459b-9a0d-911d3b135e4e.png)
 
