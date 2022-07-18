@@ -13,6 +13,15 @@ uint16_t textbgcolor = ST7735_BLACK; ///< 16-bit text color for print()
 uint16_t textsize_x = 1;
 uint16_t textsize_y = 1;
 
+void drawBitmap(int16_t x0, int16_t y0, int16_t w, int16_t h, uint16_t bmap[])
+{
+	for (int i = 0; i < w; i++)
+		for (int j = 0; j < h; j++)
+		{
+			drawPixel(x0 + i, y0+j, bmap[i + j * _width]);
+		}
+}
+
 void drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
 {
 

@@ -6,7 +6,7 @@
 #define YDIV 6
 
 #define CLOCKTIM_PRESC 0
-#define SYSCLK_FREQ 96000000
+#define SYSCLK_FREQ 100000000
 #define BUFFER_LEN (2 * PIXDIV * XDIV)
 
 #define UPPER_VOLTAGE (atten * 3.3)

@@ -2,8 +2,8 @@
 #include "scope.h"
 #include "ui.h"
 #include "wave.h"
-
-#include "usbd_cdc_if.h"
+#include "splash.h"
+//#include "usbd_cdc_if.h"
 
 #define WHITE ST7735_WHITE
 #define BLACK ST7735_BLACK
@@ -31,6 +31,8 @@ extern UART_HandleTypeDef huart1;
 
 uint8_t autocalFlag = 0;
 extern float offsetVoltage;
+
+uint8_t fast = 1;
 
 // Vertical autocalibration
 void autoCal()
@@ -81,7 +83,10 @@ void autoCal()
 // A little startup splash screen
 void splash()
 {
-    printString("pillScope Plus\nCompiled ");
+    drawBitmap(0, 0, 160, 128, logo);
+    setTextColor(BLACK, WHITE);
+
+    printString(" FW compiled: ");
     printString(__DATE__);
     flushDisplay();
     HAL_Delay(2500);
@@ -93,7 +98,11 @@ void ui()
     clearDisplay();
 
     if (!HAL_GPIO_ReadPin(BTN1_GPIO_Port, BTN1_Pin) && !HAL_GPIO_ReadPin(BTN3_GPIO_Port, BTN3_Pin))
+    {
         autocalFlag = 1;
+        if (!HAL_GPIO_ReadPin(BTN2_GPIO_Port, BTN2_Pin)) // Reset if all 3 buttons are pressed at the same time
+            HAL_NVIC_SystemReset();
+    }
 
     if (autocalFlag) // Check if we need to calibrate
     {
@@ -101,8 +110,8 @@ void ui()
         autocalFlag = 0;
     }
 
-    drawWave(); // Draw the wave
-    sideInfo(); // Print info on the side
+    traceScreen(); // Draw the wave
+    sideInfo();    // Print info on the side
     settingsBar();
 
     if (outputFlag)
@@ -209,7 +218,7 @@ void settingsBar()
     printString("Atten");
 
     setCursor(130, 105);
-    if (tdiv < 1000)
+    if (tdiv < 100)
         printString("us/d");
     else
         printString("ms/d");
@@ -259,8 +268,10 @@ void settingsBar()
     if (sel == 4)
         setTextColor(BLACK, WHITE);
     setCursor(130, 115);
-    if (tdiv < 1000)
+    if (tdiv < 100)
         printf("%d\n", (int)tdiv);
+    else if (tdiv < 1000)
+        printf("0.%d\n", (int)tdiv / 100);
     else
         printf("%d\n", (int)tdiv / 1000);
 
@@ -286,7 +297,7 @@ void settingsBar()
         }
         else if (sel == 4) // tdiv
         {
-            if (tdiv > 20)
+            if (tdiv > 10)
             {
                 if (tdiv > 1000)
                     tdiv -= 1000;
@@ -353,7 +364,7 @@ void outputSerial(char s[], uint8_t o)
     switch (o)
     {
     case 1:
-        CDC_Transmit_FS(s, strlen(s));
+        // CDC_Transmit_FS(s, strlen(s));
         HAL_Delay(1);
         break;
     case 2:
@@ -450,11 +461,17 @@ void outputTek(uint8_t o)
     outputSerial(buffer, o);
 
     // number of samples
-    sprintf(buffer, "%d\n\r", BUFFER_LEN);
+    if (fast)
+        sprintf(buffer, "%d\n\r", BUFFER_LEN / 2);
+    else
+        sprintf(buffer, "%d\n\r", BUFFER_LEN);
     outputSerial(buffer, o);
 
     // trigger point in buffer
-    sprintf(buffer, "%d\n\r", trigPoint);
+    if (fast)
+        sprintf(buffer, "%d\n\r", 0);
+    else
+        sprintf(buffer, "%d\n\r", trigPoint);
     outputSerial(buffer, o);
 
     // frontend offset voltage
@@ -468,12 +485,18 @@ void outputTek(uint8_t o)
     HAL_Delay(1);
 
     // ADC samples
-    for (int i = 0; i < BUFFER_LEN; i++)
-    {
-        sprintf(buffer, "%d\n\r", adcBuf[i]);
-        outputSerial(buffer, o);
-    }
-
+    if (fast)
+        for (int i = 0; i < BUFFER_LEN / 2; i++)
+        {
+            sprintf(buffer, "%d\n\r", adcBuf[i + trigPoint]);
+            outputSerial(buffer, o);
+        }
+    else
+        for (int i = 0; i < BUFFER_LEN; i++)
+        {
+            sprintf(buffer, "%d\n\r", adcBuf[i]);
+            outputSerial(buffer, o);
+        }
     // transmission end marker
     sprintf(buffer, "SendWaveComplete!\n\r");
     outputSerial(buffer, o);

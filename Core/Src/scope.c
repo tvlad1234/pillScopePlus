@@ -9,10 +9,10 @@ extern DMA_HandleTypeDef hdma_adc1;
 extern SPI_HandleTypeDef hspi1;
 extern TIM_HandleTypeDef htim3;
 
-uint16_t adcBuf[BUFFER_LEN];             // this is where we'll store data
+uint16_t adcBuf[BUFFER_LEN];             // this is where we'll store waveform data
 volatile uint8_t finishedConversion = 0; // this lets us know when we're done capturing data
 
-int atten = 10; // Attenuation
+int atten = 1;  // Attenuation
 float vdiv = 2; // Volts per division
 
 uint8_t trigged;       // whether or not we're triggered
@@ -27,7 +27,7 @@ float sampPer;     // Sample period in uS (how long it takes to measure one samp
 float maxVoltage, minVoltage; // Voltage measurements
 float measuredFreq, sigPer;   // Time measurements
 
-float offsetVoltage = 1.6540283; // Reference voltage for the analog frontend
+float offsetVoltage = 1.6540283; // Reference voltage of the the analog frontend
 
 extern UART_HandleTypeDef huart1;
 uint8_t uartBuf[15];
@@ -61,20 +61,19 @@ void sample()
     finishedConversion = 0;
 }
 
-// This runs in an infinite loop
+// This is the main loop of the app
 void scopeLoop()
 {
     // Acquire one buffer
     sample();
 
     // Find the trigger point
-    findTrigger();
+    findTrigger(adcBuf);
     if (trigged)
-        HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 0);
+        HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 0); // light the on-board LED up if triggered
 
     // Run the UI
     ui();
-
     HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);
 }
 
@@ -94,10 +93,18 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 // This runs after receiving a character over the UART
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-    extern uint8_t outputFlag;
+    extern uint8_t outputFlag, fast;
     if (uartBuf[0] == 's')
         outputFlag = 2;
     else if (uartBuf[0] == 'S')
+    {
         outputFlag = 4;
+        fast = 0;
+    }
+    else if (uartBuf[0] == 'F')
+    {
+        outputFlag = 4;
+        fast = 1;
+    }
     HAL_UART_Receive_IT(&huart1, uartBuf, 1);
 }

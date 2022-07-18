@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -49,6 +48,7 @@ TIM_HandleTypeDef htim3;
 
 UART_HandleTypeDef huart1;
 
+DMA_HandleTypeDef hdma_memtomem_dma2_stream1;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -102,7 +102,6 @@ int main(void)
   MX_ADC1_Init();
   MX_SPI1_Init();
   MX_TIM3_Init();
-  MX_USB_DEVICE_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   scopeInit();
@@ -142,7 +141,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 25;
-  RCC_OscInitStruct.PLL.PLLN = 192;
+  RCC_OscInitStruct.PLL.PLLN = 200;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 4;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -323,6 +322,8 @@ static void MX_USART1_UART_Init(void)
 
 /**
   * Enable DMA controller clock
+  * Configure DMA for memory to memory transfers
+  *   hdma_memtomem_dma2_stream1
   */
 static void MX_DMA_Init(void)
 {
@@ -330,10 +331,32 @@ static void MX_DMA_Init(void)
   /* DMA controller clock enable */
   __HAL_RCC_DMA2_CLK_ENABLE();
 
+  /* Configure DMA request hdma_memtomem_dma2_stream1 on DMA2_Stream1 */
+  hdma_memtomem_dma2_stream1.Instance = DMA2_Stream1;
+  hdma_memtomem_dma2_stream1.Init.Channel = DMA_CHANNEL_0;
+  hdma_memtomem_dma2_stream1.Init.Direction = DMA_MEMORY_TO_MEMORY;
+  hdma_memtomem_dma2_stream1.Init.PeriphInc = DMA_PINC_ENABLE;
+  hdma_memtomem_dma2_stream1.Init.MemInc = DMA_MINC_ENABLE;
+  hdma_memtomem_dma2_stream1.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+  hdma_memtomem_dma2_stream1.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+  hdma_memtomem_dma2_stream1.Init.Mode = DMA_NORMAL;
+  hdma_memtomem_dma2_stream1.Init.Priority = DMA_PRIORITY_LOW;
+  hdma_memtomem_dma2_stream1.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
+  hdma_memtomem_dma2_stream1.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
+  hdma_memtomem_dma2_stream1.Init.MemBurst = DMA_MBURST_SINGLE;
+  hdma_memtomem_dma2_stream1.Init.PeriphBurst = DMA_PBURST_SINGLE;
+  if (HAL_DMA_Init(&hdma_memtomem_dma2_stream1) != HAL_OK)
+  {
+    Error_Handler( );
+  }
+
   /* DMA interrupt init */
   /* DMA2_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+  /* DMA2_Stream1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
 
 }
 
@@ -408,6 +431,12 @@ void printFloat(float v, int decimalDigits, char s[])
   else
     sprintf(s, "%i.%i", intPart, fractPart);
 }
+
+void *dma_memcpy(void *destination, const void *source, size_t num){
+  HAL_DMA_Start_IT(&hdma_memtomem_dma2_stream1, source, destination, num);
+  while(HAL_DMA_GetState(&hdma_memtomem_dma2_stream1) != HAL_DMA_STATE_READY);
+}
+
 /* USER CODE END 4 */
 
 /**
