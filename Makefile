@@ -39,7 +39,8 @@ C_SOURCES =  \
 Core/Src/main.c \
 Core/Src/scope.c \
 Core/Src/ui.c \
-Core/Stc/wave.c \
+Core/Src/wave.c \
+Core/Src/scpi_instrument.c \
 Core/Src/stm32f4xx_it.c \
 Core/Src/stm32f4xx_hal_msp.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c \
@@ -65,7 +66,17 @@ Core/Src/system_stm32f4xx.c \
 Core/Src/syscalls.c \
 Drivers/ST7735-Cube/Src/gfx.c \
 Drivers/ST7735-Cube/Src/st7735.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c \
+Middlewares/scpi-parser/src/error_scpi.c \
+Middlewares/scpi-parser/src/expression.c \
+Middlewares/scpi-parser/src/fifo.c \
+Middlewares/scpi-parser/src/ieee488.c \
+Middlewares/scpi-parser/src/lexer.c \
+Middlewares/scpi-parser/src/minimal.c \
+Middlewares/scpi-parser/src/parser.c \
+Middlewares/scpi-parser/src/units.c \
+Middlewares/scpi-parser/src/utils.c \
+
 
 # ASM sources
 ASM_SOURCES =  \
@@ -127,8 +138,9 @@ C_INCLUDES =  \
 -IDrivers/STM32F4xx_HAL_Driver/Inc \
 -IDrivers/STM32F4xx_HAL_Driver/Inc/Legacy \
 -IDrivers/CMSIS/Device/ST/STM32F4xx/Include \
--IDrivers/CMSIS/Include
-
+-IDrivers/CMSIS/Include \
+-IMiddlewares/scpi-parser/inc \
+-IMiddlewares/scpi-parser/src
 
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections

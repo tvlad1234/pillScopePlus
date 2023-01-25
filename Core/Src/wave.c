@@ -6,23 +6,6 @@
 #define BLACK ST7735_BLACK
 #define WAVE_COLOR ST7735_YELLOW
 
-// All kinds of variables, you'll see what these do in scope.c
-extern uint16_t adcBuf[BUFFER_LEN];
-extern int atten;
-extern float vdiv;
-extern float trigVoltage;
-extern uint8_t trig, trigged;
-extern int trigPoint;
-
-extern float tdiv;
-extern uint32_t sampRate;
-extern float sampPer;
-
-extern float maxVoltage, minVoltage;
-extern float measuredFreq, sigPer;
-
-extern float offsetVoltage;
-
 uint8_t topClip, bottomClip; // Whether or not we're clipping through the graticule
 
 // Convert ADC sample to voltage at frontend input

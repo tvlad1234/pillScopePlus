@@ -3,7 +3,7 @@ Oscilloscope based around the STM32F401 Black Pill and a color LCD screen, meant
 ![The pillScope in its case](https://user-images.githubusercontent.com/60291077/177203708-384191ef-0c0f-4918-a163-46cf7b4721da.jpg)
 
 ## Why does it exist?
-The goal of this project was to create a simple and easy to build but still very usable oscillsocope. I wanted to learn the basics of how a **digital storage oscilloscope** functions, while also ending up with something which can be used as an educational tool in the lab. A short description of how oscillscopes (and this one in particular) work can be found [here](HowItWorks.md).
+The goal of this project was to create a simple and easy to build but still very usable oscilloscope. I wanted to learn the basics of how a **digital storage oscilloscope** functions, while also ending up with something which can be used as an educational tool in the lab. A short description of how oscilloscopes (and this one in particular) work can be found [here](HowItWorks.md).
 
 ## Features
 * -3.3V to 3.3V input range (can be increased if using attenuator probes)
@@ -14,7 +14,7 @@ The goal of this project was to create a simple and easy to build but still very
   * min/max voltage
   * peak-to-peak voltage
   * frequency
-* Captured waveforms can be sent to a computer over UART and analyzed in the Tektronix TekScope app
+* SCPI interface over UART
 ## Required parts
 ### Base parts:
 * STM32F401CC Black Pill development board
@@ -46,22 +46,13 @@ The Select button cycles through the different parameters, which can be adjusted
 Pressing Up and Down at the same time triggers the auto-calibration function. The tip and ground clip of the probed should be coupled together while calibrating. 
 
 ### Measuring things
-The frontend of the instrument makes use of a virtual ground point which is 1.65V above the real ground. Because of this, the oscilloscope and the device under test must not be sharing the same ground reference. If you need to send data to the computer while measuring a device which shares ground with the scope, you should connect the computer via an opto-isolated adapter, while powering the oscilloscope from an external source.
+The frontend of the instrument makes use of a virtual ground point which is 1.65V above the real ground. Because of this, the oscilloscope and the device under test must not be sharing the same power source. If you need to send data to the computer while measuring a device which would usually share ground with the power supply of the scope, you should connect the computer via an opto-isolated adapter, while powering the oscilloscope from an external source.
 
-### Saving captured wavevorms
-The captured waveforms can be sent to a computer over UART.
-
-#### CSV Output
-Sending `s` (lowercase s) to the UART tells the instrument to output the captured waveform in CSV format, which is compatible with the Tektronix TekScope app.
-
-![putty](https://user-images.githubusercontent.com/60291077/177576118-8649bee9-bdd7-459b-9a0d-911d3b135e4e.png)
-
-#### Direct TekScope output 
-Sending `S` (capital S) tells the scope to output raw data, which can be read by a [companion app](https://github.com/tvlad1234/tekscopeIngest). This app automatically streams the captured data to TekScope, which allows almost real-time waveform analysis on the computer.
-![companion](https://user-images.githubusercontent.com/60291077/177576844-adfbda6b-5129-4aee-bc59-4e8e6be63796.png)
+### SCPI interface
+The instrument provides a SCPI interface over the UART. So far, it allows changing the settings and querying the measurements that are also displayed on the screen. SCPI parsing functionality is provided using [this library made by j123b567](https://github.com/j123b567/scpi-parser).
 
 ## Code
-The code can be compiled with `make`. The actual oscilloscope code of this project is located in `Core\Src`, the [scope.c](Core/Src/scope.c), [ui.c](Core/Src/ui.c) and [wave.c](Core/Src/wave.c) files. Feel free to take a look, as they're commented for ease of understanding.
+The code can be compiled with `make`. The actual oscilloscope code of this project is located in `Core\Src`, the [scope.c](Core/Src/scope.c), [ui.c](Core/Src/ui.c), [wave.c](Core/Src/wave.c) and [scpi_instrument.c](Core/Src/scpi_instrument.c) files.
 
 
 

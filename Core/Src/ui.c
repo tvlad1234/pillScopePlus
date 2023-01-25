@@ -3,36 +3,13 @@
 #include "ui.h"
 #include "wave.h"
 #include "splash.h"
-//#include "usbd_cdc_if.h"
 
 #define WHITE ST7735_WHITE
 #define BLACK ST7735_BLACK
 
 #define MENUPOS 134
 
-// All kinds of variables, you'll see what these do in scope.c
-extern uint16_t adcBuf[BUFFER_LEN];
-extern int atten;
-extern float vdiv;
-extern float trigVoltage;
-extern uint8_t trig;
-extern uint8_t trigged;
-extern int trigPoint;
-
-extern float tdiv;
-extern uint32_t sampRate;
-extern float sampPer;
-
-extern float maxVoltage, minVoltage;
-extern float measuredFreq, sigPer;
-
-volatile uint8_t outputFlag = 0; // whether or not we should output data to the USB or UART port
-extern UART_HandleTypeDef huart1;
-
 uint8_t autocalFlag = 0;
-extern float offsetVoltage;
-
-uint8_t fast = 1;
 
 // Vertical autocalibration
 void autoCal()
@@ -114,20 +91,6 @@ void ui()
     sideInfo();    // Print info on the side
     settingsBar();
 
-    if (outputFlag)
-    {
-        if (outputFlag < 3) // If the computer requested data, we send it. This flag is modified in the USB receive handler in usbd_cdc_if.c and in the UART receive handler in scope.c
-        {
-            outputCSV(outputFlag);
-            outputFlag = 0;
-        }
-        else
-        {
-            outputTek(outputFlag - 2);
-            outputFlag = 0;
-        }
-    }
-
     flushDisplay();
 }
 
@@ -195,7 +158,6 @@ void sideInfo()
 // This function adjusts the settings
 void settingsBar()
 {
-    extern uint8_t topClip, bottomClip;
     static uint8_t sel = 0;
     char st[10];
 
@@ -358,148 +320,3 @@ void settingsBar()
         sel = 0;
 }
 
-// This function dumps a string to either UART or USB port
-void outputSerial(char s[], uint8_t o)
-{
-    switch (o)
-    {
-    case 1:
-        // CDC_Transmit_FS(s, strlen(s));
-        HAL_Delay(1);
-        break;
-    case 2:
-        HAL_UART_Transmit(&huart1, s, strlen(s), HAL_MAX_DELAY);
-        break;
-    default:
-        break;
-    }
-}
-
-// This function dumps the captured waveform as TekScope-compatible CSV data
-void outputCSV(uint8_t o)
-{
-    char st[10];
-    char s1[10];
-    uint8_t buffer[30] = "";
-
-    setCursor(2, 5);
-    setTextColor(BLACK, WHITE);
-    printString("Sending data");
-    if (o == 1)
-        printString(" via USB");
-    else
-        printString(" via UART");
-    flushDisplay();
-
-    sprintf(buffer, "\033[2J\033[H\033[3J");
-    outputSerial(buffer, o);
-
-    sprintf(buffer, "Model,TekscopeSW\n\r");
-    outputSerial(buffer, o);
-
-    sprintf(buffer, "Label,CH1\n\r");
-    outputSerial(buffer, o);
-
-    sprintf(buffer, "Waveform Type,ANALOG\n\r");
-    outputSerial(buffer, o);
-
-    sprintf(buffer, "Horizontal Units,s\n\r");
-    outputSerial(buffer, o);
-
-    printFloat(sampPer, 2, st);
-    sprintf(buffer, "Sample Interval,%sE-06\n\r", st);
-    outputSerial(buffer, o);
-
-    sprintf(buffer, "Record Length,%d\n\r", BUFFER_LEN);
-    outputSerial(buffer, o);
-
-    sprintf(buffer, "Zero Index,%d\n\r", trigPoint);
-    outputSerial(buffer, o);
-    HAL_Delay(5);
-
-    sprintf(buffer, "Vertical Units,V\n\r");
-    outputSerial(buffer, o);
-
-    sprintf(buffer, ",\n\rLabels,\n\r");
-    outputSerial(buffer, o);
-
-    sprintf(buffer, "TIME,CH1\n\r");
-    outputSerial(buffer, o);
-
-    for (int i = 0; i < BUFFER_LEN; i++)
-    {
-        float voltage = atten * frontendVoltage(adcBuf[i]);
-        printFloat(voltage, 1, st);
-        printFloat((float)i * sampPer, 3, s1);
-        sprintf(buffer, "%sE-06,%s\n\r", s1, st);
-        outputSerial(buffer, o);
-    }
-}
-
-// This function dumps the captured waveform as raw data, for the TekScope data ingestion app
-void outputTek(uint8_t o)
-{
-    char st[10];
-    uint8_t buffer[30] = "";
-
-    setCursor(2, 5);
-    setTextColor(BLACK, WHITE);
-    printString("Sending data");
-    if (o == 1)
-        printString(" via USB");
-    else
-        printString(" via UART");
-    flushDisplay();
-
-    // transmission begin marker
-    sprintf(buffer, "BeginWave!\n\r");
-    outputSerial(buffer, o);
-
-    // sample period
-    printFloat(sampPer, 2, st);
-    sprintf(buffer, "%s\n\r", st);
-    outputSerial(buffer, o);
-
-    // number of samples
-    if (fast)
-        sprintf(buffer, "%d\n\r", BUFFER_LEN / 2);
-    else
-        sprintf(buffer, "%d\n\r", BUFFER_LEN);
-    outputSerial(buffer, o);
-
-    // trigger point in buffer
-    if (fast)
-        sprintf(buffer, "%d\n\r", 0);
-    else
-        sprintf(buffer, "%d\n\r", trigPoint);
-    outputSerial(buffer, o);
-
-    // frontend offset voltage
-    printFloat(offsetVoltage, 4, st);
-    sprintf(buffer, "%s\n\r", st);
-    outputSerial(buffer, o);
-
-    // attenuation factor of the probe
-    sprintf(buffer, "%d\n\r", atten);
-    outputSerial(buffer, o);
-    HAL_Delay(1);
-
-    // ADC samples
-    if (fast)
-        for (int i = 0; i < BUFFER_LEN / 2; i++)
-        {
-            sprintf(buffer, "%d\n\r", adcBuf[i + trigPoint]);
-            outputSerial(buffer, o);
-        }
-    else
-        for (int i = 0; i < BUFFER_LEN; i++)
-        {
-            sprintf(buffer, "%d\n\r", adcBuf[i]);
-            outputSerial(buffer, o);
-        }
-    // transmission end marker
-    sprintf(buffer, "SendWaveComplete!\n\r");
-    outputSerial(buffer, o);
-    sprintf(buffer, "\n\r");
-    outputSerial(buffer, o);
-}

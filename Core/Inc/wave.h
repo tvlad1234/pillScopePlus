@@ -6,4 +6,6 @@ float frontendVoltage(uint16_t samp);
 void traceScreen();
 void findTrigger();
 
+extern uint8_t topClip, bottomClip;
+
 #endif

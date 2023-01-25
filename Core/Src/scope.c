@@ -2,8 +2,10 @@
 #include "scope.h"
 #include "ui.h"
 #include "wave.h"
+#include "scpi_instrument.h"
 
 /// Hardware handles
+
 extern ADC_HandleTypeDef hadc1;
 extern DMA_HandleTypeDef hdma_adc1;
 extern SPI_HandleTypeDef hspi1;
@@ -12,7 +14,7 @@ extern TIM_HandleTypeDef htim3;
 uint16_t adcBuf[BUFFER_LEN];             // this is where we'll store waveform data
 volatile uint8_t finishedConversion = 0; // this lets us know when we're done capturing data
 
-int atten = 1;  // Attenuation
+int atten = 10;  // Attenuation
 float vdiv = 2; // Volts per division
 
 uint8_t trigged;       // whether or not we're triggered
@@ -48,6 +50,14 @@ void scopeInit()
 
     // Initialize the UART
     HAL_UART_Receive_IT(&huart1, uartBuf, 1);
+
+    SCPI_Init(&scpi_context,
+              scpi_commands,
+              &scpi_interface,
+              scpi_units_def,
+              SCPI_IDN1, SCPI_IDN2, SCPI_IDN3, SCPI_IDN4,
+              scpi_input_buffer, SCPI_INPUT_BUFFER_LENGTH,
+              scpi_error_queue_data, SCPI_ERROR_QUEUE_SIZE);
 }
 
 // This function acquires one buffer worth of data
@@ -93,18 +103,12 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 // This runs after receiving a character over the UART
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-    extern uint8_t outputFlag, fast;
-    if (uartBuf[0] == 's')
-        outputFlag = 2;
-    else if (uartBuf[0] == 'S')
-    {
-        outputFlag = 4;
-        fast = 0;
-    }
-    else if (uartBuf[0] == 'F')
-    {
-        outputFlag = 4;
-        fast = 1;
-    }
+    SCPI_Input(&scpi_context, uartBuf, 1);
     HAL_UART_Receive_IT(&huart1, uartBuf, 1);
+}
+
+// This function dumps data to UART
+void sendSerial(char *data, size_t s)
+{
+    HAL_UART_Transmit(&huart1, data, s, HAL_MAX_DELAY);
 }
