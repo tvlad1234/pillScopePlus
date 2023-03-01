@@ -48,7 +48,7 @@ Pressing Up and Down at the same time triggers the auto-calibration function. Th
 ### Measuring things
 The frontend of the instrument makes use of a virtual ground point which is 1.65V above the real ground. Because of this, the oscilloscope and the device under test must not be sharing the same ground reference. If you need to send data to the computer while measuring a device which shares ground with the scope, you should connect the computer via an opto-isolated adapter, while powering the oscilloscope from an external source.
 
-### Saving captured wavevorms
+### Saving captured waveforms
 The captured waveforms can be sent to a computer over UART.
 
 #### CSV Output
